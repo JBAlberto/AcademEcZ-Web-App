@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academics Organizer - Subjects</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/subjects.css"/>
+
+  </head>
+  <body class="dark-mode">
+    
+    <div class="dashboard-container" id="dashboard-app-root">
+      
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo"></div>
+          <span class="sidebar-title">AcademEcZ App</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+          <a href="/index.html" class="nav-item" id="nav-overview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9" />
+              <rect x="14" y="3" width="7" height="5" />
+              <rect x="14" y="12" width="7" height="9" />
+              <rect x="3" y="16" width="7" height="5" />
+            </svg>
+            <span>Overview</span>
+          </a>
+          
+          <a href="/subjects.html" class="nav-item active" id="nav-subjects">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <span>Subjects</span>
+          </a>
+          
+          <a href="/tasks.html" class="nav-item" id="nav-tasks">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <span>Requirements</span>
+          </a>
+          
+          <a href="/settings.html" class="nav-item" id="nav-settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            <span>Settings</span>
+          </a>
+        </nav>
+      </aside>
+      
+      <!-- Main Content Stage -->
+      <div class="main-wrapper">
+        
+        <!-- Header Controls -->
+        <header class="header">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+          
+          <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="subjects-search-input" placeholder="Search subjects, instructors, course codes..." />
+          </div>
+          
+          <div class="header-actions">
+            <!-- Theme Toggler Action -->
+            <button class="header-btn" id="theme-toggle-btn" title="Toggle Light/Dark Mode">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" id="theme-toggle-icon">
+                <!-- Loaded via shared JS -->
+              </svg>
+            </button>
+            
+          </div>
+        </header>
+        
+        <!-- Main Content Area Views -->
+        <main class="content-area">
+          
+          <div id="subjects-view" class="view-pane active">
+            
+            <!-- Welcome Banner -->
+            <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, #334155); margin-bottom: 24px;">
+              <div class="welcome-text">
+                <h1>Academic Subjects Board</h1>
+                <p>Register, inspect, and complete syllabus milestones across enrolled disciplines. Your notes and progress persist automatically.</p>
+              </div>
+              <div>
+                <button class="btn btn-primary" id="toggle-register-panel-btn" style="padding: 10px 18px; font-weight: 600;">
+                  + Register New Subject
+                </button>
+              </div>
+            </div>
+
+            <!-- Register Subject Slide Down Panel -->
+            <div class="register-subject-panel" id="register-subject-panel">
+              <h3 style="font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Enlist a New Course Subject</h3>
+              <form id="register-subject-form" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div style="grid-column: span 1;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Subject Title</label>
+                  <input type="text" id="reg-title" placeholder="e.g., Organic Chemistry I" required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem;" />
+                </div>
+                <div style="grid-column: span 1;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Course Code</label>
+                  <input type="text" id="reg-code" placeholder="e.g., CHEM-201" required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem;" />
+                </div>
+                <div style="grid-column: span 1;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Instructor Name</label>
+                  <input type="text" id="reg-instructor" placeholder="e.g., Dr. Marie Curie" required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem;" />
+                </div>
+                
+                <div style="grid-column: span 1;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Category / Field</label>
+                  <select id="reg-category" style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem; cursor:pointer;">
+                    <option value="Programming">Programming</option>
+                    <option value="Development">Development</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Logics">Logic</option>
+                    <option value="Minor Subject">Minor Subject</option>
+                  </select>
+                </div>
+                <div style="grid-column: span 1;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Difficulty Level</label>
+                  <select id="reg-difficulty" style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem; cursor:pointer;">
+                    <option value="Introductory">Introductory</option>
+                    <option value="Intermediate" selected>Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+                <div style="grid-column: span 1;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Syllabus Milestones (comma separated)</label>
+                  <input type="text" id="reg-syllabus" placeholder="Intro, Midterm Study, Lab 1, Final Paper" required style="width:100%; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem;" />
+                </div>
+
+                <div style="grid-column: span 3;">
+                  <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px; color:var(--text-secondary);">Course Description</label>
+                  <textarea id="reg-desc" placeholder="Provide a brief summary of the course topics, scope, and objectives..." style="width:100%; height:70px; padding:10px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.9rem; font-family:var(--font-sans); resize:none;"></textarea>
+                </div>
+
+                <div style="grid-column: span 3; display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px;">
+                  <button type="button" id="close-register-panel-btn" class="btn btn-secondary" style="padding:10px 20px;">Cancel</button>
+                  <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-weight: 600;">Enlist Subject</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Subjects Working Layout -->
+            <div class="subjects-layout">
+              
+              <!-- Left Side: List and Filters -->
+              <div>
+                <div class="subjects-header-bar">
+                  <div class="subject-filters" id="subject-category-filters">
+                    <button class="pill-btn active" data-category="All">All Categories</button>
+                    <button class="pill-btn" data-category="Programming">Programming</button>
+                    <button class="pill-btn" data-category="Development">Development</button>
+                    <button class="pill-btn" data-category="Mathematics">Math</button>
+                    <button class="pill-btn" data-category="Logic">Logic</button>
+                    <button class="pill-btn" data-category="Minor Subject">Minor Subject</button>
+                  </div>
+                  
+                </div>
+
+                <div class="subjects-grid-container" id="subjects-cards-list">
+                  <!-- Dynamically populated with subject cards -->
+                </div>
+              </div>
+
+              <!-- Right Side: Detail Inspector Pane -->
+              <div class="subject-details-pane" id="subject-details-container">
+                <!-- Dynamically updated based on selection. Renders empty-details-state if none selected -->
+                <div class="empty-details-state">
+                  <div class="empty-details-icon">📚</div>
+                  <h3 style="font-weight: 700; color: var(--text-primary);">No Subject Selected</h3>
+                  <p style="font-size: 0.9rem; max-width: 320px;">Choose a subject from the academic board to manage syllabus completion, log study notes, and track your overall milestone progress.</p>
+                </div>
+              </div>
+
+            </div>
+            
+          </div>
+          
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/src/subjects.js"></script>
+  </body>
+</html>

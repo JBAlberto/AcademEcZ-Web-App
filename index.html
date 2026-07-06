@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academics Organizer - Overview Dashboard</title>
+    <!-- Main Style Bundle -->
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="dark-mode">
+    
+    <div class="dashboard-container" id="dashboard-app-root">
+      
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo"></div>
+          <span class="sidebar-title">AcademEcZ App</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+          <a href="/index.html" class="nav-item active" id="nav-overview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9" />
+              <rect x="14" y="3" width="7" height="5" />
+              <rect x="14" y="12" width="7" height="9" />
+              <rect x="3" y="16" width="7" height="5" />
+            </svg>
+            <span>Overview</span>
+          </a>
+          
+          <a href="/subjects.html" class="nav-item" id="nav-subjects">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <span>Subjects</span>
+          </a>
+          
+          <a href="/tasks.html" class="nav-item" id="nav-tasks">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+            <span>Requirements</span>
+          </a>
+          
+          <a href="/settings.html" class="nav-item" id="nav-settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            <span>Settings</span>
+          </a>
+        </nav>
+      </aside>
+      
+      <!-- Main Content Stage -->
+      <div class="main-wrapper">
+        
+        <!-- Header Controls -->
+        <header class="header">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+          
+          <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="main-search-input" placeholder="Search subjects, instructors, course codes..." />
+          </div>
+          
+          <div class="header-actions">
+            <!-- Theme Toggler Action -->
+            <button class="header-btn" id="theme-toggle-btn" title="Toggle Light/Dark Mode">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" id="theme-toggle-icon">
+                <!-- Inner HTML will load via shared JS -->
+              </svg>
+            </button>
+          </div>
+        </header>
+        
+        <!-- Main Content Area Views -->
+        <main class="content-area">
+          
+          <div id="overview-view" class="view-pane active">
+            
+            <!-- Greeting Banner -->
+            <div class="welcome-banner">
+              <div class="welcome-text">
+                <h1>Academic Operations Center</h1>
+                <p>Welcome back! Let's check your current lecture syllabus goals and pending class requirements.</p>
+              </div>
+              <div class="date-indicator">
+                SYSTEM CLOCK: <span id="current-time-val">00:00:00</span>
+              </div>
+            </div>
+
+            <!-- Stats strip widgets -->
+            <div class="stats-strip">
+              <div class="stat-widget">
+                <div class="stat-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stats-courses-count">0</span>
+                  <span class="stat-label">Active Courses</span>
+                </div>
+              </div>
+
+              <div class="stat-widget">
+                <div class="stat-icon" style="color: var(--success);">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stats-milestones-ratio">0%</span>
+                  <span class="stat-label">Syllabus Complete</span>
+                </div>
+              </div>
+
+              <div class="stat-widget">
+                <div class="stat-icon" style="color: var(--warning);">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stats-requirements-count">0</span>
+                  <span class="stat-label">Pending Tasks</span>
+                </div>
+              </div>
+
+              <div class="stat-widget">
+                <div class="stat-icon" style="color: #a855f7;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stats-sprint-hours">0</span>
+                  <span class="stat-label">Study Sprints (min)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dual panel layouts -->
+            <div class="panel-grid">
+              
+              <!-- Left Side dashboard widgets (span-8) -->
+              <div class="col-8" style="display:flex; flex-direction:column; gap:24px;">
+                
+                <!-- Courses Overview Card -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-title">Current Semester Courseware</span>
+                    <a href="/subjects.html" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">Browse Board</a>
+                  </div>
+                  <div class="panel-card-body" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;" id="dashboard-recent-courses">
+                    <!-- Loaded dynamically via javascript -->
+                  </div>
+                </div>
+
+                <!-- Upcoming Requirements Card -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-title">Next Academic Deliverables</span>
+                    <a href="/tasks.html" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">Requirements Hub</a>
+                  </div>
+                  <div class="panel-card-body">
+                    <div class="task-list" id="dashboard-upcoming-requirements">
+                      <!-- Loaded dynamically -->
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Right Side Dashboard controls (span-4) -->
+              <div class="col-4" style="display:flex; flex-direction:column; gap:24px;">
+                
+                <!-- Simple weekly planner scheduler widget -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-title">Lectures & Study Sprints</span>
+                  </div>
+                  <div class="panel-card-body" style="padding: 20px;">
+                    <form id="dashboard-schedule-form" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                      <input type="text" id="sch-activity" placeholder="Class/Task title (e.g. Physics Lab)" required style="width:100%; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.85rem;" />
+                      <div style="display:flex; gap:8px;">
+                        <select id="sch-day" style="flex:1; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.85rem; cursor:pointer;">
+                          <option value="Monday">Mon</option>
+                          <option value="Tuesday">Tue</option>
+                          <option value="Wednesday">Wed</option>
+                          <option value="Thursday">Thu</option>
+                          <option value="Friday">Fri</option>
+                          <option value="Saturday">Sat</option>
+                          <option value="Sunday">Sun</option>
+                        </select>
+                        <input type="time" id="sch-time" required style="flex:1.2; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.85rem;" />
+                      </div>
+                      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:8px;">+ Log Entry</button>
+                    </form>
+
+                    <!-- Schedule items render container -->
+                    <div style="display:flex; flex-direction:column; gap:8px;" id="dashboard-schedule-items">
+                      <!-- Rendered dynamically -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Notifications log panel -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-title">Operation Registry logs</span>
+                    <button id="clear-notifications-btn" style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer; font-weight:600;">Clear</button>
+                  </div>
+                  <div class="panel-card-body" style="padding:16px; display:flex; flex-direction:column; gap:12px;" id="dashboard-notifications-log">
+                    <!-- Rendered dynamically -->
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+            
+          </div>
+          
+        </main>
+      </div>
+    </div>
+    
+    <!-- Loaded via multi-page bundling -->
+    <script type="module" src="/src/index.js"></script>
+  </body>
+</html>
