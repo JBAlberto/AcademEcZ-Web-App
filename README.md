@@ -8,11 +8,11 @@
 
 AcademEcZ is currently under active development. Features, UI, and functionality are subject to change as the project evolves.
 
-![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge\&logo=react\&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-5-3178C6?style=for-the-badge\&logo=javascript\&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge\&logo=vite\&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=for-the-badge\&logo=tailwind-css\&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Work%20in%20Progress-orange?style=for-the-badge)
+![React](https://img.shields.io/badge)
+![JavaScript](https://img.shields.io/badge)
+![Vite](https://img.shields.io/badge)
+![Tailwind CSS](https://img.shields.io/badge)
+![Status](https://img.shields.io/badge)
 
 </div>
 
