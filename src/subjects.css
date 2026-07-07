@@ -1,1 +1,83 @@
 /* Academic subjects-specific overrides. All main styling resides in style.css */
+
+/* Notes modal editor (large notepad) */
+.notes-modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  padding: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+body.light-mode .notes-modal-overlay{
+  background: rgba(2, 6, 23, 0.35);
+}
+
+.notes-modal{
+  width: min(1100px, 96vw);
+  height: min(76vh, 720px);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-modal-toolbar{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(255,255,255,0.02);
+}
+
+.notes-modal-title{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notes-modal-title-top{
+  font-family: var(--font-mono);
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.notes-modal-title-sub{
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.notes-modal-editor-wrap{
+  flex: 1;
+  padding: 16px;
+}
+
+.notes-editor{
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 14px 16px;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.notes-editor:focus{
+  border-color: var(--accent-color);
+}
+

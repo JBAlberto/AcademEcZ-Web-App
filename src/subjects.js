@@ -252,13 +252,46 @@ class AcademicSubjectsController {
         </div>
       </div>
 
-      <!-- Live-saving Study Notebook -->
+      <!-- Notes: Compact preview + large notepad editor modal -->
       <div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <h3 style="font-weight: 700; font-size:1.1rem; color:var(--text-primary);">Personal Study Notes</h3>
-          <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge">✓ AUTOSAVED</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap: 12px;">
+          <div style="display:flex; flex-direction:column; gap:3px;">
+            <h3 style="font-weight: 700; font-size:1.1rem; color:var(--text-primary); margin:0;">Personal Study Notes</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Click “Edit Notes” for full editor</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <button class="btn btn-secondary" type="button" onclick="academicController.openNotesEditor()" style="padding: 8px 12px; font-weight: 700; border-radius: 8px;">
+              Edit Notes
+            </button>
+            <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge">✓ AUTOSAVED</span>
+          </div>
         </div>
+
+        <!-- Compact inline preview (still autosaves) -->
         <textarea class="notes-textarea" id="subject-notes-pad" placeholder="Draft key concepts, definitions, study plans, or outstanding questions for this subject. Notes are saved instantly..." oninput="academicController.handleNotesAutosave(this.value)">${sub.notes || ""}</textarea>
+      </div>
+
+      <!-- Full editor modal (created once, reused by JS) -->
+      <div class="notes-modal-overlay" id="notes-editor-overlay" style="display:none;">
+        <div class="notes-modal" role="dialog" aria-modal="true" aria-label="Subject Notes Editor">
+          <div class="notes-modal-toolbar">
+            <div class="notes-modal-title">
+              <span class="notes-modal-title-top">${sub.code} • Notes</span>
+              <span class="notes-modal-title-sub">Large-scale notepad editor (autosaves)</span>
+            </div>
+
+            <div class="notes-modal-actions">
+              <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge-modal">✓ AUTOSAVED</span>
+              <button class="btn btn-secondary" type="button" onclick="academicController.closeNotesEditor()" style="padding: 8px 12px; font-weight: 700; border-radius: 8px;">
+                Close
+              </button>
+            </div>
+          </div>
+
+          <div class="notes-modal-editor-wrap">
+            <textarea class="notes-editor" id="subject-notes-editor" spellcheck="true" placeholder="Start typing..." oninput="academicController.handleNotesEditorAutosave(this.value)">${sub.notes || ""}</textarea>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -291,16 +324,61 @@ class AcademicSubjectsController {
     if (sub) {
       sub.notes = val;
       localStorage.setItem("academic_subjects", JSON.stringify(this.subjects));
-      
-      // Briefly show the "AUTOSAVED" label
+
+      // Briefly show the "AUTOSAVED" label (compact)
       const badge = document.getElementById("notes-saving-badge");
       if (badge) {
         badge.style.display = "inline";
-        if (this.notesTimer) clearTimeout(this.notesTimer);
-        this.notesTimer = setTimeout(() => {
+        if (this.notesTimerCompact) clearTimeout(this.notesTimerCompact);
+        this.notesTimerCompact = setTimeout(() => {
           badge.style.display = "none";
-        }, 1200);
+        }, 900);
       }
+    }
+  }
+
+  openNotesEditor() {
+    const overlay = document.getElementById("notes-editor-overlay");
+    const editor = document.getElementById("subject-notes-editor");
+    if (!overlay || !editor) return;
+
+    const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
+    editor.value = sub?.notes || "";
+
+    overlay.style.display = "flex";
+
+    // Focus after it becomes visible
+    setTimeout(() => {
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
+    }, 0);
+  }
+
+  closeNotesEditor() {
+    const overlay = document.getElementById("notes-editor-overlay");
+    if (!overlay) return;
+    overlay.style.display = "none";
+  }
+
+  handleNotesEditorAutosave(val) {
+    const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
+    if (sub) {
+      sub.notes = val;
+      localStorage.setItem("academic_subjects", JSON.stringify(this.subjects));
+
+      // Briefly show the "AUTOSAVED" label (modal)
+      const badge = document.getElementById("notes-saving-badge-modal");
+      if (badge) {
+        badge.style.display = "inline";
+        if (this.notesTimerModal) clearTimeout(this.notesTimerModal);
+        this.notesTimerModal = setTimeout(() => {
+          badge.style.display = "none";
+        }, 900);
+      }
+
+      // Keep compact textarea in sync (so switching back is instant)
+      const compact = document.getElementById("subject-notes-pad");
+      if (compact && compact.value !== val) compact.value = val;
     }
   }
 
