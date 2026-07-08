@@ -106,21 +106,6 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
-.sidebar-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--accent-gradient);
-  position: relative;
-}
-.sidebar-logo::before {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
-}
-
 .sidebar-title {
   font-weight: 800;
   font-size: 1.1rem;
@@ -603,10 +588,31 @@ body.light-mode .date-indicator {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
   position: sticky;
   top: 94px;
+
+  /* Keep the pane fully visible; only the lower sections can scroll */
+  height: calc(100vh - 94px - 32px);
+  overflow: hidden;
+  min-height: 0;
 }
+
+/* Top section should never be clipped */
+.detail-header,
+.progress-radial-wrapper {
+  flex: 0 0 auto;
+}
+
+/* Bottom sections (milestones + notes) scroll if needed */
+.subject-bottom-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 8px; /* room for scrollbar */
+}
+
+
 
 .empty-details-state {
   display: flex;

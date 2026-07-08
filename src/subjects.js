@@ -31,6 +31,10 @@ class AcademicSubjectsController {
     this.renderDetailPane();
     this.updateStatsLabel();
 
+    // Create the full notes modal once (so it won't be wiped by re-renders)
+    this.ensureNotesModal();
+
+
     // Attach event listeners once DOM is ready
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => this.bindEvents());
@@ -171,13 +175,61 @@ class AcademicSubjectsController {
     }).join("");
   }
 
+  ensureNotesModal() {
+    // Always render a stable modal once. Its inner textarea value is synced on open.
+    if (document.getElementById("notes-editor-overlay")) return;
+
+    const container = document.getElementById("subject-details-container");
+    if (!container) return;
+
+    const overlay = document.createElement("div");
+    overlay.className = "notes-modal-overlay";
+    overlay.id = "notes-editor-overlay";
+    overlay.style.display = "none";
+
+    overlay.innerHTML = `
+      <div class="notes-modal" role="dialog" aria-modal="true" aria-label="Subject Notes Editor">
+        <div class="notes-modal-toolbar">
+          <div class="notes-modal-title">
+            <span class="notes-modal-title-top" id="notes-modal-title-top">• Notes</span>
+            <span class="notes-modal-title-sub">Large-scale notepad editor (autosaves)</span>
+          </div>
+
+          <div class="notes-modal-actions">
+            <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge-modal">✓ AUTOSAVED</span>
+            <button class="btn btn-secondary" type="button" onclick="academicController.closeNotesEditor()" style="padding: 8px 12px; font-weight: 700; border-radius: 8px;">
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div class="notes-modal-editor-wrap">
+          <textarea class="notes-editor" id="subject-notes-editor" spellcheck="true" placeholder="Start typing..." oninput="academicController.handleNotesEditorAutosave(this.value)"></textarea>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(overlay);
+  }
+
   renderDetailPane() {
     const container = document.getElementById("subject-details-container");
     if (!container) return;
 
+
     const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
 
+    // Sync modal title + editor content whenever a subject is rendered.
+    // (The modal is stable; only its contents change.)
+    const modalTitle = document.getElementById("notes-modal-title-top");
+    const editor = document.getElementById("subject-notes-editor");
+    if (modalTitle && editor) {
+      modalTitle.textContent = sub ? `${sub.code} • Notes` : "• Notes";
+      editor.value = sub?.notes || "";
+    }
+
     if (!sub) {
+
       container.innerHTML = `
         <div class="empty-details-state">
           <div class="empty-details-icon">📚</div>
@@ -198,7 +250,7 @@ class AcademicSubjectsController {
     container.innerHTML = `
       <!-- Subject Header details -->
       <div class="detail-header">
-        <div class="detail-title-section">
+        <div class="detail-title-section" style="flex: 1;">
           <div style="font-size: 0.8rem; font-family:var(--font-mono); font-weight:600; color:var(--accent-color); margin-bottom:6px; text-transform: uppercase;">
             ${sub.category} &bull; ${sub.code}
           </div>
@@ -211,12 +263,22 @@ class AcademicSubjectsController {
             <span style="font-weight: 500; color: var(--text-primary);">${sub.instructor}</span>
             <span style="color:var(--text-muted); margin-left: 6px;">(Course Lead)</span>
           </div>
+
+          <!-- Actions below instructor (so they don't float on the side) -->
+          <div style="display:flex; gap:12px; align-items:center; margin-top: 12px;">
+            <button class="btn btn-secondary" type="button" onclick="academicController.openEditSubjectModal()" 
+              style="padding: 8px 14px; font-size: 0.85rem; font-weight:600; border-radius: 6px;" title="Edit subject details">
+              Edit Subject
+            </button>
+
+            <button class="btn" onclick="academicController.handleDropSubject('${sub.id}')" 
+              style="background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); padding: 8px 14px; font-size: 0.85rem; font-weight:600; border-radius: 6px;" title="Drop subject enrollment">
+              Drop Subject
+            </button>
+          </div>
         </div>
-        
-        <button class="btn" onclick="academicController.handleDropSubject('${sub.id}')" style="background-color: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); padding: 8px 14px; font-size: 0.85rem; font-weight:600; border-radius: 6px;" title="Drop subject enrollment">
-          Drop Subject
-        </button>
       </div>
+
 
       <!-- Description and Radial Progress Row -->
       <div class="progress-radial-wrapper">
@@ -238,61 +300,131 @@ class AcademicSubjectsController {
         </div>
       </div>
 
-      <!-- Interactive Syllabus Milestone Checklists -->
-      <div>
-        <h3 style="font-weight: 700; font-size:1.1rem; margin-bottom:12px; color:var(--text-primary);">Syllabus Milestones</h3>
-        <div class="syllabus-checklist">
-          ${sub.syllabus.map((item, idx) => `
-            <div class="syllabus-item ${item.completed ? 'completed' : ''}" onclick="academicController.toggleSyllabusItem(${idx})">
-              <input type="checkbox" ${item.completed ? 'checked' : ''} onclick="event.stopPropagation(); academicController.toggleSyllabusItem(${idx})" />
-              <label class="syllabus-label">${item.name}</label>
-              <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">M-${idx+1}</span>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-
-      <!-- Notes: Compact preview + large notepad editor modal -->
-      <div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap: 12px;">
-          <div style="display:flex; flex-direction:column; gap:3px;">
-            <h3 style="font-weight: 700; font-size:1.1rem; color:var(--text-primary); margin:0;">Personal Study Notes</h3>
-            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Click “Edit Notes” for full editor</span>
-          </div>
-          <div style="display:flex; align-items:center; gap: 10px;">
-            <button class="btn btn-secondary" type="button" onclick="academicController.openNotesEditor()" style="padding: 8px 12px; font-weight: 700; border-radius: 8px;">
-              Edit Notes
-            </button>
-            <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge">✓ AUTOSAVED</span>
+      <!-- Scrollable bottom: milestones + notes -->
+      <div class="subject-bottom-scroll">
+        <!-- Interactive Syllabus Milestone Checklists -->
+        <div>
+          <h3 style="font-weight: 700; font-size:1.1rem; margin-bottom:12px; color:var(--text-primary);">Syllabus Milestones</h3>
+          <div class="syllabus-checklist">
+            ${sub.syllabus.map((item, idx) => `
+              <div class="syllabus-item ${item.completed ? 'completed' : ''}" onclick="academicController.toggleSyllabusItem(${idx})">
+                <input type="checkbox" ${item.completed ? 'checked' : ''} onclick="event.stopPropagation(); academicController.toggleSyllabusItem(${idx})" />
+                <label class="syllabus-label">${item.name}</label>
+                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">M-${idx+1}</span>
+              </div>
+            `).join("")}
           </div>
         </div>
 
-        <!-- Compact inline preview (still autosaves) -->
-        <textarea class="notes-textarea" id="subject-notes-pad" placeholder="Draft key concepts, definitions, study plans, or outstanding questions for this subject. Notes are saved instantly..." oninput="academicController.handleNotesAutosave(this.value)">${sub.notes || ""}</textarea>
+        <!-- Notes: Compact preview + large notepad editor modal -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap: 12px;">
+            <div style="display:flex; flex-direction:column; gap:3px;">
+              <h3 style="font-weight: 700; font-size:1.1rem; color:var(--text-primary); margin:0;">Personal Study Notes</h3>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Click “Edit Notes” for full editor</span>
+            </div>
+            <div style="display:flex; align-items:center; gap: 10px;">
+              <button class="btn btn-secondary" type="button" onclick="academicController.openNotesEditor()" style="padding: 8px 12px; font-weight: 700; border-radius: 8px;">
+                Edit Notes
+              </button>
+              <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge">✓ AUTOSAVED</span>
+            </div>
+          </div>
+
+          <!-- Compact inline preview (still autosaves) -->
+          <textarea class="notes-textarea" id="subject-notes-pad" placeholder="Draft key concepts, definitions, study plans, or outstanding questions for this subject. Notes are saved instantly..." oninput="academicController.handleNotesAutosave(this.value)">${sub.notes || ""}</textarea>
+        </div>
       </div>
 
-      <!-- Full editor modal (created once, reused by JS) -->
-      <div class="notes-modal-overlay" id="notes-editor-overlay" style="display:none;">
-        <div class="notes-modal" role="dialog" aria-modal="true" aria-label="Subject Notes Editor">
-          <div class="notes-modal-toolbar">
-            <div class="notes-modal-title">
-              <span class="notes-modal-title-top">${sub.code} • Notes</span>
-              <span class="notes-modal-title-sub">Large-scale notepad editor (autosaves)</span>
-            </div>
+          
 
-            <div class="notes-modal-actions">
-              <span style="font-size: 0.75rem; color: var(--success); font-family: var(--font-mono); display:none;" id="notes-saving-badge-modal">✓ AUTOSAVED</span>
-              <button class="btn btn-secondary" type="button" onclick="academicController.closeNotesEditor()" style="padding: 8px 12px; font-weight: 700; border-radius: 8px;">
+      <!-- Subject Edit Modal -->
+      <div class="subject-edit-modal-overlay" id="subject-edit-overlay" style="display:none;">
+
+        <div class="subject-edit-modal" role="dialog" aria-modal="true" aria-label="Edit Subject">
+          <div class="subject-edit-toolbar">
+            <div class="subject-edit-title">
+              <span class="subject-edit-title-top">Edit Subject</span>
+              <span class="subject-edit-title-sub">${sub.code} • Update details</span>
+            </div>
+            <div class="subject-edit-actions">
+              <button
+                class="btn btn-secondary"
+                type="button"
+                onclick="academicController.closeEditSubjectModal()"
+                style="padding: 8px 12px; font-weight: 700; border-radius: 8px;"
+              >
                 Close
               </button>
             </div>
-          </div>
 
-          <div class="notes-modal-editor-wrap">
-            <textarea class="notes-editor" id="subject-notes-editor" spellcheck="true" placeholder="Start typing..." oninput="academicController.handleNotesEditorAutosave(this.value)">${sub.notes || ""}</textarea>
+          <div class="subject-edit-body">
+            <div class="subject-edit-grid">
+              <div>
+                <label for="edit-title" class="subject-edit-label">Subject Title</label>
+                <input id="edit-title" type="text" class="subject-edit-input" />
+              </div>
+
+              <div>
+                <label for="edit-code" class="subject-edit-label">Course Code</label>
+                <input id="edit-code" type="text" class="subject-edit-input" />
+              </div>
+
+              <div>
+                <label for="edit-instructor" class="subject-edit-label">Instructor Name</label>
+                <input id="edit-instructor" type="text" class="subject-edit-input" />
+              </div>
+
+              <div>
+                <label for="edit-category" class="subject-edit-label">Category / Field</label>
+                <select id="edit-category" class="subject-edit-input" style="cursor:pointer;">
+                  <option value="Programming">Programming</option>
+                  <option value="Development">Development</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Logics">Logic</option>
+                  <option value="Minor Subject">Minor Subject</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="edit-difficulty" class="subject-edit-label">Difficulty Level</label>
+                <select id="edit-difficulty" class="subject-edit-input" style="cursor:pointer;">
+                  <option value="Introductory">Introductory</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+
+              <div style="grid-column: span 1;">
+                <label for="edit-desc" class="subject-edit-label">Course Description</label>
+                <textarea id="edit-desc" class="subject-edit-textarea" style="resize:none;"></textarea>
+              </div>
+
+          <div class="subject-edit-footer">
+              <button
+                class="btn btn-secondary"
+                type="button"
+                onclick="academicController.closeEditSubjectModal()"
+                style="padding: 10px 16px; font-weight: 700; border-radius: 10px;"
+              >
+                Cancel
+              </button>
+
+              <button
+                class="btn btn-primary"
+                type="button"
+                onclick="academicController.handleEditSubjectSave()"
+                style="padding: 10px 18px; font-weight: 700; border-radius: 10px;"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+
+
     `;
   }
 
@@ -340,17 +472,29 @@ class AcademicSubjectsController {
   openNotesEditor() {
     const overlay = document.getElementById("notes-editor-overlay");
     const editor = document.getElementById("subject-notes-editor");
-    if (!overlay || !editor) return;
+
+    if (!overlay || !editor) {
+      // Should not happen (modal is created once), but keep it safe.
+      this.ensureNotesModal();
+    }
+
+    const overlay2 = document.getElementById("notes-editor-overlay");
+    const editor2 = document.getElementById("subject-notes-editor");
+    if (!overlay2 || !editor2) return;
 
     const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
-    editor.value = sub?.notes || "";
 
-    overlay.style.display = "flex";
+    // Sync title + value before opening
+    const modalTitle = document.getElementById("notes-modal-title-top");
+    if (modalTitle) modalTitle.textContent = sub ? `${sub.code} • Notes` : "• Notes";
 
-    // Focus after it becomes visible
+    editor2.value = sub?.notes || "";
+
+    overlay2.style.display = "flex";
+
     setTimeout(() => {
-      editor.focus();
-      editor.setSelectionRange(editor.value.length, editor.value.length);
+      editor2.focus();
+      editor2.setSelectionRange(editor2.value.length, editor2.value.length);
     }, 0);
   }
 
@@ -359,6 +503,7 @@ class AcademicSubjectsController {
     if (!overlay) return;
     overlay.style.display = "none";
   }
+
 
   handleNotesEditorAutosave(val) {
     const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
@@ -497,6 +642,90 @@ class AcademicSubjectsController {
     window.sharedController.showToast(`Dropped: ${sub.title}`);
     window.sharedController.addNotification("Subject Dropped", `"${sub.title}" was successfully removed from your courses panel.`);
   }
+
+  openEditSubjectModal() {
+    const overlay = document.getElementById("subject-edit-overlay");
+    if (!overlay) return;
+
+    const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
+    if (!sub) return;
+
+    const titleInput = document.getElementById("edit-title");
+    const codeInput = document.getElementById("edit-code");
+    const instructorInput = document.getElementById("edit-instructor");
+    const categorySelect = document.getElementById("edit-category");
+    const difficultySelect = document.getElementById("edit-difficulty");
+    const descInput = document.getElementById("edit-desc");
+
+    if (!titleInput || !codeInput || !instructorInput || !categorySelect || !difficultySelect || !descInput) return;
+
+    titleInput.value = sub.title || "";
+    codeInput.value = sub.code || "";
+    instructorInput.value = sub.instructor || "";
+    categorySelect.value = sub.category || "";
+    difficultySelect.value = sub.difficulty || "";
+    descInput.value = sub.description || "";
+
+    overlay.style.display = "flex";
+    setTimeout(() => {
+      titleInput.focus();
+      titleInput.setSelectionRange(0, titleInput.value.length);
+    }, 0);
+  }
+
+  closeEditSubjectModal() {
+    const overlay = document.getElementById("subject-edit-overlay");
+    if (!overlay) return;
+    overlay.style.display = "none";
+  }
+
+  handleEditSubjectSave() {
+    const sub = this.subjects.find(s => s.id === this.selectedSubjectId);
+    if (!sub) return;
+
+    const titleInput = document.getElementById("edit-title");
+    const codeInput = document.getElementById("edit-code");
+    const instructorInput = document.getElementById("edit-instructor");
+    const categorySelect = document.getElementById("edit-category");
+    const difficultySelect = document.getElementById("edit-difficulty");
+    const descInput = document.getElementById("edit-desc");
+
+    if (!titleInput || !codeInput || !instructorInput || !categorySelect || !difficultySelect || !descInput) return;
+
+    const title = titleInput.value.trim();
+    const code = codeInput.value.trim().toUpperCase();
+    const instructor = instructorInput.value.trim();
+    const category = categorySelect.value;
+    const difficulty = difficultySelect.value;
+    const description = descInput.value.trim() || "No Description";
+
+    if (!title || !code || !instructor) {
+      window.sharedController.showToast("Some fields are required");
+      return;
+    }
+
+    sub.title = title;
+    sub.code = code;
+    sub.instructor = instructor;
+    sub.category = category;
+    sub.difficulty = difficulty;
+    sub.description = description;
+
+    this.saveSubjects();
+    this.renderCardsList();
+    this.renderDetailPane();
+    this.updateStatsLabel();
+    this.closeEditSubjectModal();
+
+    window.sharedController.showToast(`${title} updated.`);
+    window.sharedController.addNotification(
+      "Subject Updated",
+      `"${title} (${code}) successfully updated.`
+    );
+  }
+
+
+
 }
 
 window.academicController = new AcademicSubjectsController();
