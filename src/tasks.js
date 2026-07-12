@@ -11,6 +11,46 @@ class CourseworkTasksController {
     this.init();
   }
 
+  // dueDate is stored from <input type="date"> => "YYYY-MM-DD"
+  // We treat the deadline as the end of that day (23:59:59.999).
+  getDueDateEndTimestamp(dueDateStr) {
+    if (!dueDateStr) return null;
+    const parts = String(dueDateStr).split("-").map(n => Number(n));
+    if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+
+    const [yyyy, mm, dd] = parts;
+    // Local time end-of-day
+    return new Date(yyyy, mm - 1, dd, 23, 59, 59, 999).getTime();
+  }
+
+  msToLateLabel(lateMs) {
+    if (lateMs <= 0) return "";
+
+    const minute = 60 * 1000;
+    const hour = 60 * 60 * 1000;
+    const day = 24 * 60 * 60 * 1000;
+
+    const abs = lateMs;
+    if (abs >= day) {
+      const days = Math.floor(abs / day);
+      return `${days} day${days === 1 ? "" : "s"} late`;
+    }
+    if (abs >= hour) {
+      const hours = Math.floor(abs / hour);
+      return `${hours} hour${hours === 1 ? "" : "s"} late`;
+    }
+
+    const minutes = Math.max(1, Math.floor(abs / minute));
+    return `${minutes} minute${minutes === 1 ? "" : "s"} late`;
+  }
+
+  isOverdue(req) {
+    if (!req || req.completed) return false;
+    const dueEnd = this.getDueDateEndTimestamp(req.dueDate);
+    if (dueEnd == null) return false;
+    return Date.now() > dueEnd;
+  }
+
   init() {
     this.saveData();
 
@@ -116,9 +156,15 @@ class CourseworkTasksController {
     container.innerHTML = filtered.map(req => {
       const priorityClass = req.priority === "High" ? "priority-high" : req.priority === "Medium" ? "priority-medium" : "priority-low";
       const completedClass = req.completed ? "completed" : "";
+      const overdueClass = this.isOverdue(req) ? "overdue" : "";
+
+      let completionLateLabel = "";
+      if (req.completed && typeof req.completedLateMs === "number" && req.completedLateMs > 0) {
+        completionLateLabel = this.msToLateLabel(req.completedLateMs);
+      }
 
       return `
-        <div class="task-item ${completedClass}">
+        <div class="task-item ${completedClass} ${overdueClass}">
           <div class="task-item-left">
             <input type="checkbox" class="task-check" ${req.completed ? 'checked' : ''} onclick="tasksController.toggleRequirement('${req.id}')" />
             <div class="task-details">
@@ -130,7 +176,11 @@ class CourseworkTasksController {
             </div>
           </div>
           <div class="task-item-right">
-            <span class="due-date">SUBMIT BY: ${req.dueDate}</span>
+            <span class="due-date">
+              ${req.completed
+                ? (completionLateLabel ? `COMPLETED ${completionLateLabel}` : 'COMPLETED')
+                : `SUBMIT BY: ${req.dueDate}`}
+            </span>
             <button class="task-delete-btn" onclick="tasksController.deleteRequirement('${req.id}')" title="Remove requirement">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6" />
@@ -145,14 +195,32 @@ class CourseworkTasksController {
 
   toggleRequirement(id) {
     const req = this.requirements.find(r => r.id === id);
-    if (req) {
-      req.completed = !req.completed;
-      this.saveData();
-      this.renderRequirementsList();
+    if (!req) return;
 
-      window.sharedController.showToast(req.completed ? "Requirement cleared!" : "Requirement set to pending");
-      window.sharedController.addNotification("Requirement Updated", `"${req.title}" was marked as ${req.completed ? "Completed" : "Incomplete"}.`);
+    const nextCompleted = !req.completed;
+
+    req.completed = nextCompleted;
+
+    if (req.completed) {
+      req.completedAt = Date.now();
+      const dueEnd = this.getDueDateEndTimestamp(req.dueDate);
+      req.completedLateMs = dueEnd == null
+        ? 0
+        : Math.max(0, req.completedAt - dueEnd);
+    } else {
+      // reset completion lateness metadata
+      req.completedAt = undefined;
+      req.completedLateMs = undefined;
     }
+
+    this.saveData();
+    this.renderRequirementsList();
+
+    window.sharedController.showToast(req.completed ? "Requirement cleared!" : "Requirement set to pending");
+    window.sharedController.addNotification(
+      "Requirement Updated",
+      `"${req.title}" was marked as ${req.completed ? "Completed" : "Incomplete"}.`
+    );
   }
 
   handleAddTask() {
