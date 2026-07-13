@@ -83,9 +83,9 @@ This project is actively being developed. Current priorities include:
 * [x] Project setup
 * [x] Basic UI
 * [x] Subject management
-* [ ] Task management improvements
+* [x] Task management improvements
 * [ ] AI study assistant
-* [ ] Calendar integration
+* [x] Calendar integration
 * [ ] Notifications
 * [ ] User authentication
 * [ ] Cloud sync
