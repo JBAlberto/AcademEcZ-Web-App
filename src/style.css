@@ -75,8 +75,81 @@ body {
   background: var(--text-muted);
 }
 
+/* Weekly calendar */
+.weekly-calendar {
+  display: grid;
+  grid-template-columns: 86px repeat(6, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+
+.weekly-calendar .cal-head {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 4px 0;
+}
+
+.weekly-calendar .cal-cell {
+  min-height: 42px;
+  padding: 8px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.weekly-calendar .cal-cell:hover {
+  border-color: var(--text-muted);
+}
+
+.weekly-calendar .cal-slot-time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.weekly-calendar .cal-slot-title {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weekly-calendar .cal-slot-subtitle {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weekly-calendar .cal-cell.override {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25);
+}
+
+.weekly-calendar .cal-cell.no-class {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.cal-editor-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
 /* Dashboard Container */
 .dashboard-container {
+
   display: flex;
   min-height: 100vh;
   position: relative;

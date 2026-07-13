@@ -11,13 +11,14 @@
     
     <div class="dashboard-container" id="dashboard-app-root">
       
-      <!-- Sidebar Navigation -->
+        <!-- Sidebar Navigation -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <span class="sidebar-title">AcademEcZ App</span>
         </div>
         
         <nav class="sidebar-nav">
+
           <a href="/index.html" class="nav-item active" id="nav-overview">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="7" height="9" />
@@ -43,15 +44,31 @@
             </svg>
             <span>Requirements</span>
           </a>
-          
+
+          <a href="/calendar.html" class="nav-item" id="nav-calendar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <span>Calendar</span>
+          </a>
+
           <a href="/settings.html" class="nav-item" id="nav-settings">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
             <span>Settings</span>
           </a>
+
+        
         </nav>
+
+
+
       </aside>
       
       <!-- Main Content Stage -->
@@ -135,18 +152,7 @@
                 </div>
               </div>
 
-              <div class="stat-widget">
-                <div class="stat-icon" style="color: #a855f7;">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                </div>
-                <div class="stat-info">
-                  <span class="stat-value" id="stats-sprint-hours">0</span>
-                  <span class="stat-label">Study Sprints (min)</span>
-                </div>
-              </div>
+
             </div>
 
             <!-- Dual panel layouts -->
@@ -184,37 +190,21 @@
               <!-- Right Side Dashboard controls (span-4) -->
               <div class="col-4" style="display:flex; flex-direction:column; gap:24px;">
                 
-                <!-- Simple weekly planner scheduler widget -->
+                <!-- Weekly schedule overview -->
                 <div class="panel-card">
                   <div class="panel-card-header">
-                    <span class="panel-title">Lectures & Study Sprints</span>
+                    <span class="panel-title">Weekly Schedule</span>
                   </div>
-                  <div class="panel-card-body" style="padding: 20px;">
-                    <form id="dashboard-schedule-form" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
-                      <input type="text" id="sch-activity" placeholder="Class/Task title (e.g. Physics Lab)" required style="width:100%; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.85rem;" />
-                      <div style="display:flex; gap:8px;">
-                        <select id="sch-day" style="flex:1; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.85rem; cursor:pointer;">
-                          <option value="Monday">Mon</option>
-                          <option value="Tuesday">Tue</option>
-                          <option value="Wednesday">Wed</option>
-                          <option value="Thursday">Thu</option>
-                          <option value="Friday">Fri</option>
-                          <option value="Saturday">Sat</option>
-                          <option value="Sunday">Sun</option>
-                        </select>
-                        <input type="time" id="sch-time" required style="flex:1.2; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:6px; color:var(--text-primary); font-size:0.85rem;" />
-                      </div>
-                      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:8px;">+ Log Entry</button>
-                    </form>
-
-                    <!-- Schedule items render container -->
-                    <div style="display:flex; flex-direction:column; gap:8px;" id="dashboard-schedule-items">
-                      <!-- Rendered dynamically -->
-                    </div>
+                  <div class="panel-card-body" id="dashboard-next-up" style="padding:16px;">
+                    <!-- Rendered dynamically -->
                   </div>
                 </div>
 
+
                 <!-- Notifications log panel -->
+
+
+
                 <div class="panel-card">
                   <div class="panel-card-header">
                     <span class="panel-title">Operation Registry logs</span>
