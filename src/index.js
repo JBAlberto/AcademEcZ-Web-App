@@ -4,22 +4,95 @@ class OverviewDashboardController {
   constructor() {
     this.subjects = JSON.parse(localStorage.getItem("academic_subjects")) || [];
     this.requirements = JSON.parse(localStorage.getItem("academic_requirements")) || [];
-    this.schedule = JSON.parse(localStorage.getItem("academic_schedule")) || [];
+
+    // Weekly calendar schedule (fixed defaults + user overrides)
+    this.weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    this.weekTimes = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00"];
+
+    this.defaultWeeklySchedule = this.loadDefaultWeeklySchedule();
+    this.scheduleOverrides = JSON.parse(localStorage.getItem("academic_schedule_overrides")) || {};
+
+    // weekOffset = 0 => current week. Can navigate weeks.
+    this.weekOffset = 0;
 
     this.init();
   }
 
+  loadDefaultWeeklySchedule() {
+    // Fixed weekly schedule baseline.
+    // User can override per (day,time).
+    return JSON.parse(
+      localStorage.getItem("academic_default_weekly_schedule") || "null"
+    ) || {
+      Monday: {
+        "09:00": "Lecture",
+        "10:00": "Lecture",
+        "11:00": "Lab/Workshop",
+        "13:00": "Study Block",
+        "14:00": "Lecture",
+        "15:00": "Review"
+      },
+      Tuesday: {
+        "09:00": "Lecture",
+        "10:00": "Tutorial/Recap",
+        "11:00": "Lecture",
+        "13:00": "Lab/Workshop",
+        "14:00": "Study Block",
+        "15:00": "Review"
+      },
+      Wednesday: {
+        "09:00": "Lecture",
+        "10:00": "Lecture",
+        "11:00": "Problem Session",
+        "13:00": "Study Block",
+        "14:00": "Lab/Workshop",
+        "15:00": "Review"
+      },
+      Thursday: {
+        "09:00": "Lecture",
+        "10:00": "Tutorial/Recap",
+        "11:00": "Lecture",
+        "13:00": "Lab/Workshop",
+        "14:00": "Study Block",
+        "15:00": "Review"
+      },
+      Friday: {
+        "09:00": "Lecture",
+        "10:00": "Problem Session",
+        "11:00": "Lecture",
+        "13:00": "Study Block",
+        "14:00": "Review",
+        "15:00": "No class"
+      },
+      Saturday: {
+        "09:00": "Study Block",
+        "10:00": "Lab/Workshop",
+        "11:00": "Review",
+        "13:00": "No class",
+        "14:00": "Study Block",
+        "15:00": "No class"
+      }
+    };
+  }
+
+
   init() {
+    // Persist schedule config if needed
     this.saveData();
 
     // Render Stats & Sections
     this.renderMetrics();
     this.renderRecentCourses();
     this.renderUpcomingRequirements();
-    this.renderSchedule();
+
     this.renderNotifications();
+    this.renderCalendar();
+    this.renderNextUp();
+
 
     // Event Bindings
+
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => this.bindEvents());
     } else {
@@ -28,12 +101,22 @@ class OverviewDashboardController {
   }
 
   saveData() {
-    localStorage.setItem("academic_schedule", JSON.stringify(this.schedule));
+    // Keep default weekly schedule and overrides persisted.
+    localStorage.setItem(
+      "academic_default_weekly_schedule",
+      JSON.stringify(this.defaultWeeklySchedule)
+    );
+    localStorage.setItem(
+      "academic_schedule_overrides",
+      JSON.stringify(this.scheduleOverrides)
+    );
   }
+
 
   bindEvents() {
     // Search filter across pages or general input
     const searchInput = document.getElementById("main-search-input");
+
     if (searchInput) {
       searchInput.addEventListener("input", (e) => {
         const query = e.target.value.toLowerCase().trim();
@@ -44,13 +127,7 @@ class OverviewDashboardController {
     }
 
     // Handle schedule addition form
-    const schForm = document.getElementById("dashboard-schedule-form");
-    if (schForm) {
-      schForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        this.addScheduleItem();
-      });
-    }
+
 
     // Clear notifications logger
     const clearBtn = document.getElementById("clear-notifications-btn");
@@ -93,12 +170,7 @@ class OverviewDashboardController {
       reqsCount.textContent = pending;
     }
 
-    // 4. Study sprint sessions total hours (each schedule item completed adds 45 mins)
-    const hoursCount = document.getElementById("stats-sprint-hours");
-    if (hoursCount) {
-      const sessionsCount = this.schedule.length * 45;
-      hoursCount.textContent = sessionsCount;
-    }
+
   }
 
   renderRecentCourses(filterQuery = "") {
@@ -215,81 +287,343 @@ class OverviewDashboardController {
     }
   }
 
-  renderSchedule() {
-    const container = document.getElementById("dashboard-schedule-items");
+
+
+  renderCalendar() {
+    const cal = document.getElementById("weekly-calendar");
+    const weekTitle = document.getElementById("calendar-week-title");
+    const rangeSubtitle = document.getElementById("calendar-range-subtitle");
+
+    const prevBtn = document.getElementById("calendar-prev-btn");
+    const nextBtn = document.getElementById("calendar-next-btn");
+    const resetBtn = document.getElementById("calendar-reset-btn");
+
+    const formDay = document.getElementById("cal-day");
+    const formTime = document.getElementById("cal-time");
+    const formActivity = document.getElementById("cal-activity");
+
+    const noClassBtn = document.getElementById("cal-no-class-btn");
+    const saveForm = document.getElementById("calendar-editor-form");
+    const clearOverrideBtn = document.getElementById("cal-clear-override-btn");
+
+    if (!cal) return;
+
+    const weekStart = this.getWeekStartDate(this.weekOffset);
+
+
+    const fmt = (d) => {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    if (weekTitle) weekTitle.textContent = `Week of ${fmt(weekStart)}`;
+    if (rangeSubtitle)
+      rangeSubtitle.textContent = `${this.weekDays[0].slice(0, 3)} - ${this.weekDays[this.weekDays.length - 1].slice(0, 3)}`;
+
+    // Selected cell state
+    if (!this.calendarSelected) this.calendarSelected = { day: null, time: null };
+
+    // Build header + time rows
+    cal.innerHTML = "";
+
+    // Header row (day labels)
+    const timeHead = document.createElement("div");
+    timeHead.className = "cal-head";
+    timeHead.style.gridColumn = "1";
+    timeHead.textContent = "Time";
+    cal.appendChild(timeHead);
+
+    this.weekDays.forEach((d) => {
+      const h = document.createElement("div");
+      h.className = "cal-head";
+      h.textContent = d.slice(0, 3);
+      cal.appendChild(h);
+    });
+
+    // Cells
+    this.weekTimes.forEach((t) => {
+      const timeCell = document.createElement("div");
+      timeCell.className = "cal-slot-time";
+      timeCell.style.display = "flex";
+      timeCell.style.alignItems = "center";
+      timeCell.style.justifyContent = "center";
+      timeCell.style.height = "42px";
+      timeCell.style.border = "1px solid var(--border-color)";
+      timeCell.style.borderRadius = "10px";
+      timeCell.style.backgroundColor = "var(--bg-secondary)";
+      timeCell.style.width = "86px";
+      timeCell.style.marginTop = "8px";
+      timeCell.textContent = t;
+      cal.appendChild(timeCell);
+
+      this.weekDays.forEach((d) => {
+        const overrideKey = this.getOverrideKey(d, t);
+        const overridden = this.scheduleOverrides[overrideKey];
+
+
+        // Make calendar empty by default: only show content for explicit overrides.
+        const defaultVal = this.defaultWeeklySchedule?.[d]?.[t] || "No class";
+        const val = overridden !== undefined ? overridden : "";
+
+        const cell = document.createElement("div");
+        cell.className = "cal-cell";
+        if (overridden !== undefined) cell.classList.add("override");
+        if (overridden !== undefined && overridden === "No class") cell.classList.add("no-class");
+
+        const title = document.createElement("div");
+        title.className = "cal-slot-title";
+        title.textContent = val || "";
+
+        const subtitle = document.createElement("div");
+        subtitle.className = "cal-slot-subtitle";
+        subtitle.textContent = overridden !== undefined ? (overridden === "No class" ? "No class" : "Override") : "";
+
+
+        cell.appendChild(title);
+        cell.appendChild(subtitle);
+
+        cell.addEventListener("click", () => {
+          this.calendarSelected = { day: d, time: t };
+          if (formDay) formDay.value = d;
+          if (formTime) formTime.value = t;
+          if (formActivity) {
+            // Only prefill editor if an override exists; otherwise start blank.
+            // This keeps the editor from showing implicit default values.
+            if (overridden !== undefined) {
+              formActivity.value = overridden === "No class" ? "" : overridden;
+            } else {
+              formActivity.value = "";
+            }
+          }
+
+
+          // Save mode badge
+          const clearOverrideExists = !!this.calendarSelected;
+          if (clearOverrideBtn) {
+            clearOverrideBtn.style.display = clearOverrideExists ? "inline-flex" : "none";
+          }
+        });
+
+        cal.appendChild(cell);
+      });
+    });
+
+    // Navigation
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        this.weekOffset -= 1;
+        this.renderCalendar();
+      };
+    }
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        this.weekOffset += 1;
+        this.renderCalendar();
+      };
+    }
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        this.scheduleOverrides = {};
+        this.saveData();
+        this.renderCalendar();
+        this.renderNextUp();
+        window.sharedController.showToast("Calendar overrides reset");
+      };
+    }
+
+    const applySelectedOverride = (valueOrNull) => {
+
+      // Allow editing day/time in the form inputs.
+      const formDayValue = (document.getElementById("cal-day")?.value || "").trim();
+      const formTimeValue = (document.getElementById("cal-time")?.value || "").trim();
+
+      const selected = this.calendarSelected || {};
+      const day = formDayValue || selected.day;
+      const time = formTimeValue || selected.time;
+      if (!day || !time) return;
+
+      const overrideKey = this.getOverrideKey(day, time);
+
+
+
+      if (valueOrNull === null) {
+        delete this.scheduleOverrides[overrideKey];
+      } else {
+        this.scheduleOverrides[overrideKey] = valueOrNull;
+      }
+
+      this.saveData();
+      this.renderCalendar();
+      this.renderNextUp();
+      window.sharedController.showToast("Schedule updated");
+    };
+
+    if (noClassBtn) {
+      noClassBtn.onclick = () => {
+        applySelectedOverride("No class");
+      };
+    }
+
+    if (saveForm) {
+      saveForm.onsubmit = (e) => {
+        e.preventDefault();
+        const activity = (formActivity?.value || "").trim();
+        if (!activity) {
+          window.sharedController.showToast("Enter an activity name or use “No class”.");
+          return;
+        }
+        applySelectedOverride(activity);
+      };
+    }
+
+    if (clearOverrideBtn) {
+      clearOverrideBtn.onclick = () => {
+        applySelectedOverride(null);
+      };
+    }
+  }
+
+  getOverrideKey(day, time) {
+    // Fixed schedule: same edits apply every week.
+    return `${day}|${time}`;
+  }
+
+
+  getWeekStartDate(weekOffset) {
+    // Monday-based week start.
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const day = d.getDay(); // 0=Sun..6=Sat
+    const diffToMonday = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diffToMonday + weekOffset * 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+
+
+
+
+
+
+
+
+  renderNextUp() {
+    const container = document.getElementById("dashboard-next-up");
     if (!container) return;
 
-    if (this.schedule.length === 0) {
+    const now = new Date();
+    // Convert JS day (0=Sun..6=Sat) to our labels
+    const dayToLabel = (dayIndex) => {
+      const map = {
+        1: "Monday",
+        2: "Tuesday",
+        3: "Wednesday",
+        4: "Thursday",
+        5: "Friday",
+        6: "Saturday",
+        0: null
+      };
+      return map[dayIndex] || "Monday";
+    };
+
+    // Build a candidate list from the current week baseline (Mon..Sat)
+    const weekDays = this.weekDays.slice();
+    const weekTimes = this.weekTimes.slice();
+
+    // Determine starting point: today (if within Mon..Sat) else next Monday
+    let startDayIndex = now.getDay(); // 0=Sun
+    let startLabel = null;
+    if (startDayIndex >= 1 && startDayIndex <= 6) {
+      startLabel = dayToLabel(startDayIndex);
+    }
+
+    // Helper to compare times within a day
+
+
+
+    const todayLabel = startLabel;
+    const candidates = [];
+
+    // Iterate all week days in order, and all times in order
+    // If we are before the first day (Sunday), treat as starting at Monday.
+    let started = todayLabel ? false : true;
+
+    for (const d of weekDays) {
+      if (!started) {
+        if (d === todayLabel) started = true;
+        else continue;
+      }
+
+      for (const t of weekTimes) {
+        const overrideKey = this.getOverrideKey(d, t);
+        const overridden = this.scheduleOverrides[overrideKey];
+
+        const val = overridden !== undefined ? overridden : (this.defaultWeeklySchedule?.[d]?.[t] ?? "");
+        if (!val) continue;
+
+        // If it's today, skip past slots
+        if (todayLabel && d === todayLabel) {
+          const [h, m] = String(t).split(":").map(Number);
+
+
+          const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+          if (slotDate.getTime() < now.getTime()) continue;
+        }
+
+        candidates.push({ day: d, time: t, activity: val });
+      }
+    }
+
+    // If nothing remains, wrap to next week first candidate
+    let next = candidates[0] || null;
+
+    if (!next) {
+      for (const d of weekDays) {
+        for (const t of weekTimes) {
+          const overrideKey = this.getOverrideKey(d, t);
+          const overridden = this.scheduleOverrides[overrideKey];
+          const val = overridden !== undefined ? overridden : (this.defaultWeeklySchedule?.[d]?.[t] ?? "");
+          if (val) {
+            next = { day: d, time: t, activity: val };
+            break;
+          }
+        }
+        if (next) break;
+      }
+    }
+
+    if (!next) {
       container.innerHTML = `
-        <div style="background-color: var(--bg-primary); border: 1px dashed var(--border-color); border-radius: 8px; padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
-          No class schedules or study sprints mapped yet.
+        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; color: var(--text-muted); font-size: 0.85rem; text-align:center;">
+          No schedule found. Update your Weekly Schedule.
         </div>
       `;
       return;
     }
 
-    container.innerHTML = this.schedule.map(item => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background-color: var(--bg-surface); padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 6px;">
-        <div style="display:flex; flex-direction:column;">
-          <span style="font-size:0.8rem; font-weight:600; color:var(--text-primary);">${item.activity}</span>
-          <span style="font-size:0.7rem; color:var(--text-muted); font-weight:500;">${item.day} &bull; ${item.time}</span>
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap: 10px;">
+        <div style="display:flex; justify-content:space-between; gap: 12px; align-items:center;">
+          <div style="font-weight:800;">Next up</div>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">${next.day} • ${next.time}</div>
         </div>
-        <button onclick="overviewController.deleteScheduleItem(${item.id})" style="background:none; border:none; color:var(--text-muted); cursor:pointer;" title="Delete schedule">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg>
-        </button>
+        <div style="background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+          <div style="font-size: 0.9rem; font-weight: 700;">${next.activity}</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">This is your weekly schedule (fixed via overrides).</div>
+        </div>
       </div>
-    `).join("");
-  }
-
-  addScheduleItem() {
-    const actInput = document.getElementById("sch-activity");
-    const daySelect = document.getElementById("sch-day");
-    const timeInput = document.getElementById("sch-time");
-
-    if (!actInput || !daySelect || !timeInput) return;
-
-    const activity = actInput.value.trim();
-    const day = daySelect.value;
-    const time = timeInput.value;
-
-    if (!activity || !time) return;
-
-    const newItem = {
-      id: Date.now(),
-      activity,
-      day,
-      time
-    };
-
-    this.schedule.push(newItem);
-    this.saveData();
-    this.renderSchedule();
-    this.renderMetrics();
-
-    actInput.value = "";
-    timeInput.value = "";
-
-    window.sharedController.showToast("Lecture schedule registered");
-    window.sharedController.addNotification("Class/Sprint Synced", `"${activity}" scheduled for ${day} at ${time}.`);
-  }
-
-  deleteScheduleItem(id) {
-    const item = this.schedule.find(s => s.id === id);
-    this.schedule = this.schedule.filter(s => s.id !== id);
-    this.saveData();
-    this.renderSchedule();
-    this.renderMetrics();
-    
-    if (item) {
-      window.sharedController.showToast(`Deleted: ${item.activity}`);
-    }
+    `;
   }
 
   renderNotifications() {
+
     const container = document.getElementById("dashboard-notifications-log");
+
+
+
     if (!container) return;
 
     const logs = window.sharedController.notifications;
